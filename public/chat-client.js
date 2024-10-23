@@ -5,6 +5,15 @@ function fetch7TVEmotes(emoteSetId) {
         })
 }
 
+function isValidHttpUrl(url) {
+    try {
+        const newUrl = new URL(url);
+        return newUrl.protocol === 'http:' || newUrl.protocol === 'https:';
+    } catch (err) {
+        return false;
+    }
+}
+
 document.addEventListener('alpine:init', () => {
     const MESSAGES_LIMIT = 50;    
 
@@ -36,7 +45,13 @@ document.addEventListener('alpine:init', () => {
             const emoteSize = tokens.length === 1 ? '2x.webp' : '1x.webp';
             
             const msg = tokens.map((token) => {
-                if (!this.emotes[token]) return token;
+                if (!this.emotes[token]) {
+                    if (isValidHttpUrl(token)) {
+                        return `<a href="${token}">${token}</a>`;
+                    }
+                    
+                    return token
+                };
         
                 return `<img src="${this.emotes[token]}/${emoteSize}" alt="${token}" />`;
             }).join(" ");
@@ -62,8 +77,15 @@ document.addEventListener('alpine:init', () => {
             const tokens = this.message.split(/ /g);
             const last = tokens[tokens.length - 1];
             
-            if (!last.startsWith(':') || last === ":") return;
-            if (Object.keys(this.emotes).length === 0) return;
+            if (!last.startsWith(':') || last === ":") {
+                this.suggestedEmotes = [];
+                return
+            };
+
+            if (Object.keys(this.emotes).length === 0) {
+                this.suggestedEmotes = [];
+                return;
+            };
 
             const emoteKey = last.replace(':', '').toLowerCase();
             
@@ -89,7 +111,17 @@ document.addEventListener('alpine:init', () => {
 
         onFormSubmit() {
             if (this.message) {
-                console.log('test')
+                if (this.suggestedEmotes.length > 0) {
+                    this.suggestedEmotes[0].name;
+                    this.message = this.message.split(/ /g).map(t => {
+                        if (!t.startsWith(':')) return t;
+                        return this.suggestedEmotes[0].name
+                    }).join(' ');
+
+                    this.suggestedEmotes = [];
+                    return;
+                }
+
                 this.socket.emit('chat message', this.message.trim());
                 this.suggestedEmotes = [];
                 this.message = '';

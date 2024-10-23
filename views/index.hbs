@@ -135,6 +135,14 @@
         #suggestedEmotes li:hover {
             background: rgba(255,255,255, 0.1);
         }
+
+        a {
+            color: #99c3ff;
+        }
+
+        a:visited {
+            color: #c58af9;
+        }
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
   </head>
@@ -171,6 +179,7 @@
                 <ul id="suggestedEmotes" tabindex="-1">
                     <template x-for="emote in suggestedEmotes" :key="emote.name">
                         <li
+                            class="message"
                             @click="onSuggestionClick(emote.name)"
                             @keydown.enter.prevent="onSuggestionClick(emote.name)"                            
                             tabindex="0"
