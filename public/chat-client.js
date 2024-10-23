@@ -66,6 +66,10 @@ document.addEventListener('alpine:init', () => {
             } else {
                 this.messages.push(serverMessage);
             }
+
+            this.$nextTick(() => {
+                this.$refs.message.scrollTo(0, this.$refs.message.scrollHeight);
+            })
         },
 
         checkEmoteSuggestions() {     
