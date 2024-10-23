@@ -16,7 +16,16 @@ const checkSessionCookieRedirect = (req, res, next) => {
     next();
 }
 
+const redirectHasSession = (req, res, next) => {
+    if (req.cookies.session) {
+        return res.redirect(ROUTES.HOME);
+    }
+
+    next();
+}
+
 module.exports = {
     checkSessionCookie,
-    checkSessionCookieRedirect
+    checkSessionCookieRedirect,
+    redirectHasSession
 };

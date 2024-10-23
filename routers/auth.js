@@ -1,11 +1,11 @@
 const sdk = require("node-appwrite");
 const { sessionClient, adminClient } = require("../appwrite");
 const express = require("express");
-const { checkSessionCookieRedirect } = require("../middlewares");
+const { checkSessionCookieRedirect, redirectHasSession } = require("../middlewares");
 const ROUTES = require("../routes");
 const router = express.Router();
 
-router.get("/login", (req, res) => {
+router.get("/login", redirectHasSession, (req, res) => {
     const data = {
         action: ROUTES.LOGIN,
         signupLink: ROUTES.SIGNUP
@@ -18,7 +18,7 @@ router.get("/login", (req, res) => {
     res.render("login", data);
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", redirectHasSession, async (req, res) => {
     const { email, password } = req.body;
 
     const account = new sdk.Account(adminClient);
@@ -43,11 +43,11 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.get("/signup", (_, res) => {
+router.get("/signup", redirectHasSession, (_, res) => {
     res.render("signup", { action: ROUTES.SIGNUP, loginLink: ROUTES.LOGIN });
 });
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", redirectHasSession, async (req, res) => {
     const { name, email, password } = req.body;
 
     const account = new sdk.Account(adminClient);

@@ -13,12 +13,6 @@ const { router: ChatRouter } = require("./routers/chat");
 const { checkSessionCookieRedirect } = require("./middlewares");
 const ROUTES = require("./routes");
 
-io.on('connection', (socket) => {
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-  });
-});
-
 app.set("views", path.join(__dirname, "/views"));
 app.set("view engine", "hbs");
 app.use(express.static(path.join(__dirname, 'public')));
@@ -30,12 +24,14 @@ app.get('/', checkSessionCookieRedirect, (_, res) => {
   res.render('index', { logoutLink: ROUTES.LOGOUT });
 });
 
-
 app.use("/auth", AuthRouter);
 app.use("/chat", ChatRouter);
 
+io.on('connection', (socket) => {
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);
+  });
+});
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log('listening on *:3000');
-});
+server.listen(PORT);
