@@ -32,8 +32,15 @@
 
         #form {
             display: flex;
-            height: 3rem;
+            flex-direction: column-reverse;
+        }
+
+        #form > div {
+            display: flex;
+            min-height: 3rem;
             box-sizing: border-box;
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.2);
         }
 
         #input {
@@ -46,11 +53,20 @@
             margin: 0.25rem;
             font-size: 1rem;
         }
+
+        #form > ul {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
         #input:focus {
             outline: none;
         }
 
-        #form > button {
+        #form > div > button {
             background: #333;
             border: none;
             padding: 0 1rem;
@@ -65,13 +81,15 @@
             list-style-type: none;
             margin: 0;
             padding: 0;
+            overflow-y: auto;
         }
 
         #messages > li {
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.8rem;
         }
 
         #logout {
+            flex-shrink: 0;
             display: flex;
             height: 3em;
             align-items: center;
@@ -91,20 +109,78 @@
             color: #fff;
             height: 100%;
         }
+
+        #suggestedEmotes {
+            display: block;
+            padding-block: 1rem;
+            width: 100%;
+            outline: none;
+            background: rgba(0,0,0,0.2);
+        }
+
+        #suggestedEmotes li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1rem;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        #suggestedEmotes li:focus {
+            outline: none;
+            background: rgba(255,255,255, 0.1);
+        }
+
+        #suggestedEmotes li:hover {
+            background: rgba(255,255,255, 0.1);
+        }
     </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
   </head>
   <body>
-    <main>
+    <main x-data="app" tabindex="-1">
         <form id="logout" method="post" action="{{ logoutLink }}">
             <span>Chatmmy</span>
             <button>Logout</button>
         </form>
 
-        <ul id="messages"></ul>
+        <ul id="messages" tabindex="-1">
+            <template x-for="m in messages">
+                <li x-html="parseMessage(m)"></li>
+            </template>
+        </ul>
         
-        <form id="form">
-            <input id="input" autocomplete="off" placeholder="Message" />
-            <button>Send</button>
+        <form
+            id="form"
+            @submit.prevent="onFormSubmit"
+            tabindex="-1"
+        >
+            <div>
+                <input
+                    id="input"
+                    autocomplete="off"
+                    placeholder="Message"
+                    x-model="message"
+                    x-ref="input"
+                    @input.debounce="checkEmoteSuggestions"
+                />
+                <button tabindex="-1">Send</button>
+            </div>
+            <template x-if="suggestedEmotes.length > 0">
+                <ul id="suggestedEmotes" tabindex="-1">
+                    <template x-for="emote in suggestedEmotes" :key="emote.name">
+                        <li
+                            @click="onSuggestionClick(emote.name)"
+                            @keydown.enter.prevent="onSuggestionClick(emote.name)"                            
+                            tabindex="0"
+                        >
+                            <img :src="emote.url" :alt="emote.name" />
+                            <span x-text="emote.name"></span>
+                        </li>
+                    </template>
+                </ul>
+            </template>
         </form>
     </main>
 
