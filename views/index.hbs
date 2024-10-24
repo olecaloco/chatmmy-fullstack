@@ -33,6 +33,8 @@
         #form {
             display: flex;
             flex-direction: column-reverse;
+            padding-bottom: 1rem;
+            background: rgba(0,0,0,0.2);
         }
 
         #form > div {
@@ -40,7 +42,6 @@
             min-height: 3rem;
             box-sizing: border-box;
             flex-shrink: 0;
-            background: rgba(0,0,0,0.2);
         }
 
         #input {
@@ -84,10 +85,7 @@
             margin: 0;
             padding: 0;
             overflow-y: auto;
-        }
-
-        #messages > li {
-            padding: 0.5rem 0.8rem;
+            gap: 4px;
         }
 
         #logout {
@@ -146,8 +144,33 @@
             color: #c58af9;
         }
 
+        .messageItem {
+            max-width: 80%;
+            font-size: 14px;
+            color: #fff;
+            margin-left: 12px;
+        }
+
+        .messageItem > span {
+            display: inline-block;
+            background: #323232;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .messageItem.emote > span,
+        .messageItem.owner.emote > span {
+            background: none;
+        }
+
         .messageItem.owner {
             align-self: self-end;
+            margin-left: 0;
+            margin-right: 12px;
+        }
+
+        .messageItem.owner > span {
+            background: #3ba5fd;
         }
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
@@ -163,7 +186,10 @@
             <template x-for="(m, i) in messages" :key="i">
                 <li
                     class="messageItem"
-                    :class="userOwnsMessage(m) && 'owner'"
+                    :class="{
+                        'owner': userOwnsMessage(m),
+                        'emote': isEmoteOnly(m)
+                    }"
                 >
                     <span x-html="parseMessage(m)"></span>
                 </li>

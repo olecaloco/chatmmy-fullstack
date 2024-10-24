@@ -37,7 +37,7 @@ router.post("/create", checkSessionCookie, async (req, res) => {
 
     try {
         const data = {
-            message: message,
+            message: message.trim(),
             userId: userId,
         };
 

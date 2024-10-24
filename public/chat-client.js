@@ -30,6 +30,26 @@ async function fetchChatMessages() {
 }
 
 /**
+ * Saves the message to the database
+ * 
+ * @param {string} message 
+ * @param {string} userId 
+ * @returns Promise
+ */
+async function saveMessage(message, userId) {
+    return fetch('/chat/create', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: message,
+            userId: userId
+        })
+    }).catch(error => console.error(error));
+}
+
+/**
  * Checks if the string is a valid url
  * 
  * @param {string} url 
@@ -75,6 +95,9 @@ document.addEventListener('alpine:init', () => {
             fetchChatMessages()
                 .then(response => {
                     this.messages = [...response.result].reverse();
+                    this.$nextTick(() => {
+                        this.$refs.message.scrollTo(0, this.$refs.message.scrollHeight);
+                    });
                 })
                 .catch(error => console.error(error));
 
@@ -83,7 +106,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         parseMessage(message) {
-            const tokens = message.message.split(/ /g);
+            const tokens = message.message.split(/ /g);            
             const emoteSize = tokens.length === 1 ? '2x.webp' : '1x.webp';
             
             const msg = tokens.map((token) => {
@@ -118,6 +141,14 @@ document.addEventListener('alpine:init', () => {
             if (!this.user) return false;
             if (message.userId === this.user.id) return true;
             return false;
+        },
+
+        isEmoteOnly(message) {
+            if (Object.keys(this.emotes).length === 0) return false;
+            const tokens = message.message.split(/ /g);
+            if (tokens.length > 1) return false;
+            if (!this.emotes[tokens[0]]) return false;
+            return true;
         },
 
         checkEmoteSuggestions() {     
@@ -161,8 +192,9 @@ document.addEventListener('alpine:init', () => {
             this.$refs.input.focus();
         },
 
-        onFormSubmit() {
+        async onFormSubmit() {
             if (!this.message) return;
+            if (!this.user) return;
             
 
             // Autocomplete the emote suggestion if there's any
@@ -178,23 +210,12 @@ document.addEventListener('alpine:init', () => {
             }
 
             // TODO: Save to database first
-            fetch('/chat/create', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: this.message,
-                    userId: this.user.id
-                })
-            })
-                .then((data) => data.json())
-                .then((response) => console.log(response))
-                .catch(error => console.error(error));
+            const trimmedMessage = this.message.trim();
+            await saveMessage(trimmedMessage, this.user.id);
 
             // Sends the message to the socket
             this.socket.emit('message', {
-                message: this.message,
+                message: trimmedMessage,
                 userId: this.user.id
             });
 
