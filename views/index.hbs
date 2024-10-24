@@ -77,6 +77,8 @@
         }
 
         #messages {
+            display: flex;
+            flex-direction: column;
             flex: 1 1 0;
             list-style-type: none;
             margin: 0;
@@ -143,6 +145,10 @@
         a:visited {
             color: #c58af9;
         }
+
+        .messageItem.owner {
+            align-self: self-end;
+        }
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
   </head>
@@ -154,8 +160,13 @@
         </form>
 
         <ul x-ref="message" id="messages" tabindex="-1">
-            <template x-for="m in messages">
-                <li x-html="parseMessage(m)"></li>
+            <template x-for="(m, i) in messages" :key="i">
+                <li
+                    class="messageItem"
+                    :class="userOwnsMessage(m) && 'owner'"
+                >
+                    <span x-html="parseMessage(m)"></span>
+                </li>
             </template>
         </ul>
         
@@ -179,7 +190,7 @@
                 <ul id="suggestedEmotes" tabindex="-1">
                     <template x-for="emote in suggestedEmotes" :key="emote.name">
                         <li
-                            class="message"
+                            class="message owner"
                             @click="onSuggestionClick(emote.name)"
                             @keydown.enter.prevent="onSuggestionClick(emote.name)"                            
                             tabindex="0"

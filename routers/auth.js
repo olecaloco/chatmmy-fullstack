@@ -1,7 +1,7 @@
-const sdk = require("node-appwrite");
+const { Account, ID } = require("node-appwrite");
 const { sessionClient, adminClient } = require("../appwrite");
 const express = require("express");
-const { checkSessionCookieRedirect, redirectHasSession } = require("../middlewares");
+const { checkSessionCookieRedirect, redirectHasSession, checkSessionCookie } = require("../middlewares");
 const ROUTES = require("../routes");
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.get("/login", redirectHasSession, (req, res) => {
 router.post("/login", redirectHasSession, async (req, res) => {
     const { email, password } = req.body;
 
-    const account = new sdk.Account(adminClient);
+    const account = new Account(adminClient);
 
     try {
         const session = await account.createEmailPasswordSession(
@@ -50,11 +50,11 @@ router.get("/signup", redirectHasSession, (_, res) => {
 router.post("/signup", redirectHasSession, async (req, res) => {
     const { name, email, password } = req.body;
 
-    const account = new sdk.Account(adminClient);
+    const account = new Account(adminClient);
 
     try {
         await account.create(
-            sdk.ID.unique(),
+            ID.unique(),
             email,
             password,
             name,
@@ -68,7 +68,7 @@ router.post("/signup", redirectHasSession, async (req, res) => {
 
 router.post("/logout", checkSessionCookieRedirect ,async (req, res) => {
     const client = sessionClient.setSession(req.cookies.session);
-    const account = new sdk.Account(client);
+    const account = new Account(client);
 
     try {
         await account.deleteSession('current');
@@ -76,6 +76,19 @@ router.post("/logout", checkSessionCookieRedirect ,async (req, res) => {
         res.redirect(ROUTES.LOGIN);
     } catch (e) {
         res.status(400).send(e.message);
+    }
+});
+
+router.get("/me", checkSessionCookie, async (req, res) => {
+    const client = sessionClient.setSession(req.cookies.session);
+    const account = new Account(client);
+
+    try {
+        const user = await account.get();
+
+        res.status(200).json({ success: true, user: { name: user.name, id: user.$id } });
+    } catch (e) {
+        res.status(e.code).json({ success: false, error: e.message });
     }
 });
 
